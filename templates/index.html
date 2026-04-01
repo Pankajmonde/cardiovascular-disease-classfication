@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CardioAI | Pathological Heart Sound Detection</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="background-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <main class="container">
+        <header>
+            <div class="logo">
+                <i class="fa-solid fa-heart-pulse"></i>
+                <h1>Cardio<span>AI</span></h1>
+            </div>
+            <p>Advanced Multi-Domain SVM Heart Sound Analysis</p>
+        </header>
+
+        <section class="upload-section glass-panel">
+            <div class="upload-area" id="uploadZone">
+                <input type="file" id="audioInput" accept=".wav,audio/wav" hidden>
+                <div class="upload-icon">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <h3>Drag & Drop your .wav file here</h3>
+                <p>or</p>
+                <button class="btn-primary" onclick="document.getElementById('audioInput').click()">Browse Files</button>
+            </div>
+            <div class="file-info hidden" id="fileInfo">
+                <i class="fa-solid fa-file-audio"></i>
+                <span id="fileName">heart_sound.wav</span>
+                <button class="btn-icon" id="removeFile"><i class="fa-solid fa-times"></i></button>
+            </div>
+            
+            <button class="btn-analyze hidden" id="analyzeBtn">Analyze Sound Data</button>
+        </section>
+
+        <!-- Loading State -->
+        <section class="loading-state hidden" id="loadingState">
+            <div class="loader">
+                <div class="bar1"></div>
+                <div class="bar2"></div>
+                <div class="bar3"></div>
+                <div class="bar4"></div>
+                <div class="bar5"></div>
+                <div class="bar6"></div>
+            </div>
+            <p>Extracting 40+ Features & Running SVM Kernel...</p>
+        </section>
+
+        <!-- Results State -->
+        <section class="results-section hidden" id="resultsZone">
+            <div class="glass-panel main-result" id="resultCard">
+                <div class="status-icon" id="statusIcon">
+                    <i class="fa-solid fa-check-circle"></i>
+                </div>
+                <h2 id="predictionText">Normal</h2>
+                <p class="confidence">Confidence: <span id="confidenceScore">0.0</span>%</p>
+            </div>
+
+            <div class="details-grid">
+                <div class="glass-panel detail-card">
+                    <h4>Spectral Centroid<br><small style="text-transform: capitalize; font-size: 0.75rem; color: var(--accent);">(The Pitch)</small></h4>
+                    <div class="value" id="valSpectral">0.0</div>
+                    <p class="desc">Frequency center of mass</p>
+                </div>
+                <div class="glass-panel detail-card">
+                    <h4>Entropy<br><small style="text-transform: capitalize; font-size: 0.75rem; color: var(--accent);">(The Messiness)</small></h4>
+                    <div class="value" id="valEntropy">0.0</div>
+                    <p class="desc">Signal randomness measure</p>
+                </div>
+                <div class="glass-panel detail-card">
+                    <h4>Temporal Stability<br><small style="text-transform: capitalize; font-size: 0.75rem; color: var(--accent);">(The Rhythm)</small></h4>
+                    <div class="value" id="valTemporal">0.0</div>
+                    <p class="desc">CQT sequence stability</p>
+                </div>
+                <div class="glass-panel detail-card">
+                    <h4>CQT Contrast<br><small style="text-transform: capitalize; font-size: 0.75rem; color: var(--accent);">(The Sharpness)</small></h4>
+                    <div class="value" id="valContrast">0.0</div>
+                    <p class="desc">Spectral dynamics contrast</p>
+                </div>
+            </div>
+            <button class="btn-secondary mt-4" id="resetBtn">Analyze Another File</button>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
