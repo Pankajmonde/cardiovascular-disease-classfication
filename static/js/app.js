@@ -343,6 +343,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     
 exportPdfBtn.addEventListener('click', async () => {
+    // Populate patient information into the report
+    document.getElementById('rName').textContent = document.getElementById('patName').value || 'N/A';
+    document.getElementById('rAge').textContent = document.getElementById('patAge').value || 'N/A';
+    document.getElementById('rGender').textContent = document.getElementById('patGender').value || 'N/A';
+    document.getElementById('rSymptoms').textContent = document.getElementById('patSymptoms').value || 'N/A';
+
     const element = document.getElementById('printableReport');
 
     // Step 1: Show element properly (VISIBLE in layout)
