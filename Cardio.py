@@ -33,6 +33,7 @@ from skimage.feature import graycomatrix, graycoprops
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split, StratifiedShuffleSplit
 from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, GradientBoostingClassifier
 from sklearn.metrics import (accuracy_score, precision_score, recall_score, 
                              f1_score, confusion_matrix, roc_auc_score, roc_curve,
                              classification_report)
@@ -591,22 +592,19 @@ print("="*90)
 
 svm_models = {}
 train_times = {}
-kernels = ['linear', 'poly', 'rbf']
+kernels = ['Random Forest', 'Extra Trees', 'Gradient Boosting']
 
 for kernel_type in kernels:
-    print(f"\nTraining SVM with {kernel_type.upper()} kernel...")
+    print(f"\nTraining {kernel_type.upper()} Model...")
     
     start_time = time.time()
     
-    if kernel_type == 'linear':
-        # Formula (15): Linear SVM
-        svm = SVC(kernel='linear', C=1.0, random_state=42, probability=True)
-    elif kernel_type == 'poly':
-        # Formula (16): Polynomial SVM
-        svm = SVC(kernel='poly', degree=3, gamma='scale', C=1.0, random_state=42, probability=True)
-    else:  # rbf
-        # Formula (17): RBF SVM
-        svm = SVC(kernel='rbf', gamma='scale', C=1.0, random_state=42, probability=True)
+    if kernel_type == 'Random Forest':
+        svm = RandomForestClassifier(n_estimators=200, max_depth=15, random_state=42)
+    elif kernel_type == 'Extra Trees':
+        svm = ExtraTreesClassifier(n_estimators=200, max_depth=15, random_state=42)
+    else:  # Gradient Boosting
+        svm = GradientBoostingClassifier(n_estimators=150, learning_rate=0.1, max_depth=5, random_state=42)
     
     # Train
     svm.fit(X_train, y_train)
@@ -617,7 +615,11 @@ for kernel_type in kernels:
     train_times[kernel_type] = train_time
     
     print(f"✓ Training completed in {train_time:.4f} seconds")
-    print(f"  Number of support vectors: {len(svm.support_vectors_)}")
+    try:
+        n_estimators = len(svm.estimators_)
+    except AttributeError:
+        n_estimators = svm.n_estimators
+    print(f"  Number of estimators: {n_estimators}")
 
 # ============================================================================
 # STEP 8-9: COMPREHENSIVE MODEL EVALUATION
@@ -705,7 +707,10 @@ for kernel_type in kernels:
     efficiency_index = (accuracy * f1) / (train_time * memory_usage + 1e-8)
     
     # Formula (27): Complexity Score
-    n_support_vectors = len(svm.support_vectors_)
+    try:
+        n_support_vectors = len(svm.support_vectors_)
+    except AttributeError:
+        n_support_vectors = getattr(svm, 'n_estimators', 100)
     complexity_score = n_support_vectors / X_train.shape[0]
     
     efficiency_metrics[kernel_type] = {

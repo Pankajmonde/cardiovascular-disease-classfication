@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CardioAI | Pathological Heart Sound Detection</title>
+    <title>CardioAI | Advanced Heart Sound Analysis</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -15,7 +15,8 @@
         <div class="orb orb-3"></div>
     </div>
 
-    <main class="container">
+    <!-- Main Container to be printed by PDF -->
+    <main class="container" id="reportContainer">
         <header>
             <div class="logo">
                 <i class="fa-solid fa-heart-pulse"></i>
@@ -24,23 +25,44 @@
             <p>Advanced Multi-Domain SVM Heart Sound Analysis</p>
         </header>
 
-        <section class="upload-section glass-panel">
+        <section class="upload-section glass-panel" id="uploadPanel">
             <div class="upload-area" id="uploadZone">
                 <input type="file" id="audioInput" accept=".wav,audio/wav" hidden>
                 <div class="upload-icon">
-                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <i class="fa-solid fa-stethoscope"></i>
                 </div>
                 <h3>Drag & Drop your .wav file here</h3>
                 <p>or</p>
-                <button class="btn-primary" onclick="document.getElementById('audioInput').click()">Browse Files</button>
-            </div>
-            <div class="file-info hidden" id="fileInfo">
-                <i class="fa-solid fa-file-audio"></i>
-                <span id="fileName">heart_sound.wav</span>
-                <button class="btn-icon" id="removeFile"><i class="fa-solid fa-times"></i></button>
+                <div class="btn-group">
+                    <button class="btn-primary" onclick="document.getElementById('audioInput').click()">
+                        <i class="fa-solid fa-folder-open"></i> Browse Files
+                    </button>
+                    <button class="btn-record" id="recordBtn">
+                        <i class="fa-solid fa-microphone"></i> Record Live
+                    </button>
+                </div>
+                <div id="recordingStatus" class="hidden mt-3 text-accent">
+                    <i class="fa-solid fa-circle-dot fa-fade text-danger"></i> Recording in progress... <span id="recordTimer">0:00</span>
+                    <br><button class="btn-secondary mt-2" style="padding: 5px 15px;" id="stopRecordBtn">Stop</button>
+                </div>
             </div>
             
-            <button class="btn-analyze hidden" id="analyzeBtn">Analyze Sound Data</button>
+            <div class="file-info hidden" id="fileInfo">
+                <div class="file-details">
+                    <i class="fa-solid fa-file-audio"></i>
+                    <span id="fileName">heart_sound.wav</span>
+                </div>
+                <!-- Waveform Container -->
+                <div id="waveform-container">
+                    <div id="waveform"></div>
+                    <div class="wave-controls" style="text-align: center; margin-top: 10px;">
+                         <button id="playPauseWave" class="btn-icon" style="align-self: center"><i class="fa-solid fa-play"></i> Play Audio Visualizer</button>
+                    </div>
+                </div>
+                <button class="btn-icon-danger" id="removeFile" style="width: 100%; margin-top: 10px;"><i class="fa-solid fa-times"></i> Re-select File</button>
+            </div>
+            
+            <button class="btn-analyze hidden" id="analyzeBtn">Analyze Engine <i class="fa-solid fa-bolt"></i></button>
         </section>
 
         <!-- Loading State -->
@@ -66,32 +88,132 @@
                 <p class="confidence">Confidence: <span id="confidenceScore">0.0</span>%</p>
             </div>
 
-            <div class="details-grid">
-                <div class="glass-panel detail-card">
-                    <h4>Spectral Centroid<br><small style="text-transform: capitalize; font-size: 0.75rem; color: var(--accent);">(The Pitch)</small></h4>
-                    <div class="value" id="valSpectral">0.0</div>
-                    <p class="desc">Frequency center of mass</p>
-                </div>
-                <div class="glass-panel detail-card">
-                    <h4>Entropy<br><small style="text-transform: capitalize; font-size: 0.75rem; color: var(--accent);">(The Messiness)</small></h4>
-                    <div class="value" id="valEntropy">0.0</div>
-                    <p class="desc">Signal randomness measure</p>
-                </div>
-                <div class="glass-panel detail-card">
-                    <h4>Temporal Stability<br><small style="text-transform: capitalize; font-size: 0.75rem; color: var(--accent);">(The Rhythm)</small></h4>
-                    <div class="value" id="valTemporal">0.0</div>
-                    <p class="desc">CQT sequence stability</p>
-                </div>
-                <div class="glass-panel detail-card">
-                    <h4>CQT Contrast<br><small style="text-transform: capitalize; font-size: 0.75rem; color: var(--accent);">(The Sharpness)</small></h4>
-                    <div class="value" id="valContrast">0.0</div>
-                    <p class="desc">Spectral dynamics contrast</p>
+            <!-- Explainable AI Section -->
+            <div class="explainable-ai-container glass-panel mt-4">
+                <h3><i class="fa-solid fa-microchip"></i> Explainable AI Analysis</h3>
+                <div class="explainable-grid">
+                    <div class="chart-container">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                    
+                    <div class="details-grid-small">
+                        <div class="detail-card">
+                            <h4>Spectral Centroid<br><small class="text-accent">(The Pitch)</small></h4>
+                            <div class="value" id="valSpectral">0.0</div>
+                        </div>
+                        <div class="detail-card">
+                            <h4>Entropy<br><small class="text-accent">(The Messiness)</small></h4>
+                            <div class="value" id="valEntropy">0.0</div>
+                        </div>
+                        <div class="detail-card">
+                            <h4>Temporal Stability<br><small class="text-accent">(The Rhythm)</small></h4>
+                            <div class="value" id="valTemporal">0.0</div>
+                        </div>
+                        <div class="detail-card">
+                            <h4>CQT Contrast<br><small class="text-accent">(The Sharpness)</small></h4>
+                            <div class="value" id="valContrast">0.0</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <button class="btn-secondary mt-4" id="resetBtn">Analyze Another File</button>
+            
+            <div class="action-buttons-group mt-4 no-print">
+                <button class="btn-success" id="exportPdfBtn"><i class="fa-solid fa-file-pdf"></i> Download Medical Report</button>
+                <button class="btn-secondary" id="resetBtn"><i class="fa-solid fa-rotate-right"></i> Analyze Another Patient</button>
+            </div>
         </section>
     </main>
 
+    <!-- Hidden Printer-Friendly Medical Report -->
+    <div id="printableReport" style="display:none; color:#111; background:#fff; padding:50px 60px; font-family:Arial,sans-serif; width:750px; max-width:100%; box-sizing:border-box;">
+        
+        <!-- Header -->
+        <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:3px solid #1a1a2e; padding-bottom:18px; margin-bottom:30px;">
+            <div>
+                <h1 style="margin:0; font-size:2rem; color:#1a1a2e; letter-spacing:1px;">❤️ CardioAI</h1>
+                <p style="margin:4px 0 0; color:#555; font-size:0.9rem;">Advanced Heart Sound Analysis System</p>
+            </div>
+            <div style="text-align:right;">
+                <p style="margin:0; font-size:0.85rem; color:#777;">Report Generated</p>
+                <p style="margin:0; font-size:0.95rem; font-weight:bold; color:#333;" id="printDate"></p>
+            </div>
+        </div>
+
+        <!-- Patient Info -->
+        <div style="background:#f4f6fb; border-radius:8px; padding:18px 22px; margin-bottom:28px;">
+            <p style="margin:0 0 6px; font-size:1rem; color:#333;"><strong>📂 Audio File:</strong> <span id="printFileName" style="color:#1a1a2e;"></span></p>
+            <p style="margin:0; font-size:1rem; color:#333;"><strong>🔬 Analysis Engine:</strong> Multi-Domain Feature Fusion + Ensemble SVM</p>
+        </div>
+
+        <!-- Diagnostic Result -->
+        <div style="margin-bottom:28px;">
+            <h2 style="font-size:1.1rem; text-transform:uppercase; letter-spacing:2px; color:#888; margin-bottom:12px; border-bottom:1px solid #ddd; padding-bottom:8px;">Diagnostic Result</h2>
+            <div id="printResultBox" style="border-radius:10px; padding:22px 28px; display:flex; align-items:center; justify-content:space-between;">
+                <div>
+                    <p style="margin:0 0 4px; font-size:0.9rem; color:#555; font-weight:600; text-transform:uppercase; letter-spacing:1px;">Classification</p>
+                    <h2 id="printPrediction" style="margin:0; font-size:2.2rem; font-weight:700;"></h2>
+                </div>
+                <div style="text-align:right;">
+                    <p style="margin:0 0 4px; font-size:0.9rem; color:#555; font-weight:600; text-transform:uppercase; letter-spacing:1px;">AI Confidence</p>
+                    <h2 id="printConfidence" style="margin:0; font-size:2.2rem; font-weight:700;"></h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Acoustic Biomarkers Table -->
+        <div style="margin-bottom:28px;">
+            <h2 style="font-size:1.1rem; text-transform:uppercase; letter-spacing:2px; color:#888; margin-bottom:12px; border-bottom:1px solid #ddd; padding-bottom:8px;">Acoustic Biomarkers</h2>
+            <table style="width:100%; border-collapse:collapse; font-size:1rem;">
+                <thead>
+                    <tr style="background:#1a1a2e; color:#fff;">
+                        <th style="padding:12px 16px; text-align:left; border-radius:6px 0 0 6px;">Biomarker</th>
+                        <th style="padding:12px 16px; text-align:center;">Description</th>
+                        <th style="padding:12px 16px; text-align:right; border-radius:0 6px 6px 0;">Measured Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="border-bottom:1px solid #eee;">
+                        <td style="padding:13px 16px; font-weight:600; color:#333;">Spectral Centroid</td>
+                        <td style="padding:13px 16px; color:#666; text-align:center;">Dominant pitch / frequency</td>
+                        <td style="padding:13px 16px; text-align:right; font-weight:700; color:#1a1a2e;" id="printPitch"></td>
+                    </tr>
+                    <tr style="background:#f9f9f9; border-bottom:1px solid #eee;">
+                        <td style="padding:13px 16px; font-weight:600; color:#333;">Signal Entropy</td>
+                        <td style="padding:13px 16px; color:#666; text-align:center;">Irregularity / messiness</td>
+                        <td style="padding:13px 16px; text-align:right; font-weight:700; color:#1a1a2e;" id="printEntropy"></td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #eee;">
+                        <td style="padding:13px 16px; font-weight:600; color:#333;">Temporal Stability</td>
+                        <td style="padding:13px 16px; color:#666; text-align:center;">Rhythmic consistency</td>
+                        <td style="padding:13px 16px; text-align:right; font-weight:700; color:#1a1a2e;" id="printRhythm"></td>
+                    </tr>
+                    <tr style="background:#f9f9f9;">
+                        <td style="padding:13px 16px; font-weight:600; color:#333;">CQT Contrast</td>
+                        <td style="padding:13px 16px; color:#666; text-align:center;">Harmonic sharpness</td>
+                        <td style="padding:13px 16px; text-align:right; font-weight:700; color:#1a1a2e;" id="printSharpness"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Clinical Interpretation -->
+        <div style="margin-bottom:36px;">
+            <h2 style="font-size:1.1rem; text-transform:uppercase; letter-spacing:2px; color:#888; margin-bottom:12px; border-bottom:1px solid #ddd; padding-bottom:8px;">Clinical Notes</h2>
+            <p id="printClinicalNote" style="font-size:1rem; color:#444; line-height:1.7; margin:0; padding:16px; background:#f4f6fb; border-left:4px solid #1a1a2e; border-radius:0 6px 6px 0;"></p>
+        </div>
+
+        <!-- Footer Disclaimer -->
+        <div style="border-top:1px dashed #ccc; padding-top:18px; font-size:0.82rem; color:#999; text-align:center; line-height:1.6;">
+            <p style="margin:0 0 4px;"><strong>Generated by CardioAI</strong> — Multi-Domain Feature Fusion + Ensemble SVM Engine</p>
+            <p style="margin:0;"><em>⚠ Disclaimer: This report is generated by an AI algorithm and does NOT replace professional medical diagnosis. Please consult a licensed cardiologist for any clinical decisions.</em></p>
+        </div>
+    </div>
+
+    <!-- Libs -->
+    <script src="https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>
