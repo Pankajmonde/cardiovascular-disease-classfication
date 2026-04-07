@@ -25,13 +25,26 @@
             <p>Explainable AI for Cardiovascular Disease Detection using PCG Signals</p>
         </header>
 
-        <!-- Patient Information Form -->
-        <section class="patient-section glass-panel no-print" style="margin-bottom: 20px; text-align: left;">
+        <!-- Tab Navigation -->
+        <div class="tabs-container no-print" style="display: flex; gap: 15px; justify-content: center; margin-bottom: 25px;">
+            <button id="navAnalysisBtn" class="btn-primary" style="padding: 10px 25px; border-radius: 20px; font-weight: bold; border: 1px solid transparent;"><i class="fa-solid fa-stethoscope"></i> AI Analysis</button>
+            <button id="navHistoryBtn" class="btn-secondary" style="padding: 10px 25px; border-radius: 20px; font-weight: bold; background: rgba(255,255,255,0.05); color: #cbd5e1; border: 1px solid rgba(255,255,255,0.2);"><i class="fa-solid fa-database"></i> Patient Database</button>
+        </div>
+
+        <div id="viewAnalysis">
+            <!-- Patient Information Form -->
+            <section class="patient-section glass-panel no-print" style="margin-bottom: 20px; text-align: left;">
             <h3 style="margin-top: 0; margin-bottom: 15px;"><i class="fa-solid fa-user"></i> Patient Information</h3>
             <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div>
-                    <label for="patName" style="display: block; margin-bottom: 5px; color: #94a3b8; font-size: 0.9rem;">Patient Name</label>
-                    <input type="text" id="patName" placeholder="e.g. John Doe" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; box-sizing: border-box;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div>
+                        <label for="patName" style="display: block; margin-bottom: 5px; color: #94a3b8; font-size: 0.9rem;">Patient Name</label>
+                        <input type="text" id="patName" placeholder="e.g. John Doe" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; box-sizing: border-box;">
+                    </div>
+                    <div>
+                        <label for="patContact" style="display: block; margin-bottom: 5px; color: #94a3b8; font-size: 0.9rem;">Contact No.</label>
+                        <input type="tel" id="patContact" placeholder="e.g. 9876543210" pattern="[0-9]{10}" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; box-sizing: border-box;">
+                    </div>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div>
@@ -116,6 +129,11 @@
                 </div>
                 <h2 id="predictionText">Normal</h2>
                 <p class="confidence">Confidence: <span id="confidenceScore">0.0</span>%</p>
+                
+                <div id="patientAdvicePanel" style="margin-top: 20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; text-align: left; border-left: 4px solid #ef4444; display: none;">
+                    <h4 id="adviceTitle" style="margin: 0 0 8px 0; font-size: 1.05rem;"><i class="fa-solid fa-notes-medical"></i> Clinical Advisory</h4>
+                    <p id="adviceText" style="margin: 0; font-size: 0.95rem; color: #cbd5e1; line-height: 1.5;"></p>
+                </div>
             </div>
 
             <!-- Explainable AI Section -->
@@ -152,7 +170,41 @@
                 <button class="btn-secondary" id="resetBtn"><i class="fa-solid fa-rotate-right"></i> Analyze Another Patient</button>
             </div>
         </section>
-    </main>
+        </div> <!-- End viewAnalysis -->
+
+        <!-- Patient Database View -->
+        <div id="viewHistory" class="no-print" style="display: none;">
+            <section class="glass-panel" id="historyPanel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0; font-size: 1.2rem;"><i class="fa-solid fa-clock-rotate-left"></i> Patient Database</h3>
+                <button class="btn-secondary" id="refreshHistoryBtn" style="padding: 8px 15px; font-size: 0.9rem;">
+                    <i class="fa-solid fa-arrows-rotate"></i> Refresh
+                </button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; color: white; min-width: 800px;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: #00d2ff;">
+                            <th style="padding: 12px; font-weight: 600;">Date</th>
+                            <th style="padding: 12px; font-weight: 600;">Patient Name</th>
+                            <th style="padding: 12px; font-weight: 600;">Contact</th>
+                            <th style="padding: 12px; font-weight: 600;">Age/Gender</th>
+                            <th style="padding: 12px; font-weight: 600;">File</th>
+                            <th style="padding: 12px; font-weight: 600;">Diagnosis</th>
+                            <th style="padding: 12px; font-weight: 600;">Confidence</th>
+                            <th style="padding: 12px; font-weight: 600;">Risk Level</th>
+                            <th style="padding: 12px; font-weight: 600; text-align: center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        </div> <!-- End viewHistory -->
+        
+    </main> <!-- End Main Container -->
 
     <!-- Hidden Printer-Friendly Medical Report -->
     <div id="printableReport" style="display:none; color:#111; background:#fff; padding:50px 60px; font-family:Arial,sans-serif; width:750px; max-width:100%; box-sizing:border-box;">

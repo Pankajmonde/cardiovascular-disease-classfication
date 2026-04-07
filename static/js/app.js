@@ -19,6 +19,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const playPauseWave = document.getElementById('playPauseWave');
     const exportPdfBtn = document.getElementById('exportPdfBtn');
     const uploadPanel = document.getElementById('uploadPanel');
+    
+    // Tabs
+    const navAnalysisBtn = document.getElementById('navAnalysisBtn');
+    const navHistoryBtn = document.getElementById('navHistoryBtn');
+    const viewAnalysis = document.getElementById('viewAnalysis');
+    const viewHistory = document.getElementById('viewHistory');
+
+    navAnalysisBtn.addEventListener('click', () => {
+        viewAnalysis.style.display = 'block';
+        viewHistory.style.display = 'none';
+        navAnalysisBtn.className = 'btn-primary';
+        navAnalysisBtn.style.background = '';
+        navAnalysisBtn.style.color = 'white';
+        navHistoryBtn.className = 'btn-secondary';
+        navHistoryBtn.style.background = 'rgba(255,255,255,0.05)';
+        navHistoryBtn.style.color = '#cbd5e1';
+    });
+
+    navHistoryBtn.addEventListener('click', () => {
+        viewAnalysis.style.display = 'none';
+        viewHistory.style.display = 'block';
+        navHistoryBtn.className = 'btn-primary';
+        navHistoryBtn.style.background = '';
+        navHistoryBtn.style.color = 'white';
+        navAnalysisBtn.className = 'btn-secondary';
+        navAnalysisBtn.style.background = 'rgba(255,255,255,0.05)';
+        navAnalysisBtn.style.color = '#cbd5e1';
+        loadHistory();
+    });
 
     let currentFile = null;
     let wavesurfer = null;
@@ -202,6 +231,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Fetch Analysis ---
     analyzeBtn.addEventListener('click', async () => {
         if (!currentFile) return;
+
+        const patContact = document.getElementById('patContact');
+        if (patContact && patContact.value.trim() !== '') {
+            if (patContact.value.replace(/[^0-9]/g, '').length !== 10) {
+                alert('Authentication Failed: Please enter exactly a 10-digit contact number.');
+                return;
+            }
+        }
+
         analyzeBtn.classList.add('hidden');
         removeFile.classList.add('hidden');
         loadingState.classList.remove('hidden');
@@ -209,11 +247,18 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const formData = new FormData();
             formData.append('audio', currentFile);
+            formData.append('patName', document.getElementById('patName').value);
+            formData.append('patContact', document.getElementById('patContact') ? document.getElementById('patContact').value : '');
+            formData.append('patAge', document.getElementById('patAge').value);
+            formData.append('patGender', document.getElementById('patGender').value);
+            formData.append('patSymptoms', document.getElementById('patSymptoms').value);
+
             const response = await fetch('/predict', { method: 'POST', body: formData });
             if (!response.ok) throw new Error("Server error.");
             const data = await response.json();
             if(data.error) throw new Error(data.error);
             showResults(data);
+            if (typeof loadHistory === 'function') loadHistory();
         } catch (error) {
             alert("Analysis Failed: " + error.message);
             resetUI();
@@ -286,6 +331,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // ── Populate the printer-friendly report ─────────────
         const isNormal   = data.prediction === 'Normal';
+        
+        // --- On-Screen Patient Advisory ---
+        const advicePanel = document.getElementById('patientAdvicePanel');
+        const adviceText = document.getElementById('adviceText');
+        const adviceTitle = document.getElementById('adviceTitle');
+        advicePanel.style.display = 'block';
+
+        if (isNormal) {
+            advicePanel.style.borderLeftColor = '#10b981';
+            adviceTitle.style.color = '#10b981';
+            adviceText.innerHTML = "<strong>No immediate action required.</strong> Maintain a healthy diet, stay hydrated, and continue regular exercise. Your heart sounds normal. Routine follow-up is recommended.";
+        } else {
+            advicePanel.style.borderLeftColor = '#ef4444';
+            adviceTitle.style.color = '#ef4444';
+            adviceText.innerHTML = "<strong>Possible Symptoms:</strong> You may be experiencing shortness of breath, unexplained fatigue, chest pain, or a rapid/irregular heartbeat.<br><br><strong>Recommended Action:</strong> The AI detected acoustic anomalies that may indicate a heart murmur or valvular dysfunction. Please consult a cardiologist to schedule an Echocardiogram.";
+        }
+        
         const resultColor = isNormal ? '#1b5e20' : '#b71c1c';
         const resultBg    = isNormal ? '#e8f5e9'  : '#ffebee';
         const confidence  = (data.confidence * 100).toFixed(2) + '%';
@@ -387,5 +449,70 @@ exportPdfBtn.addEventListener('click', async () => {
         element.style.zIndex = '';
     });
 });
+
+    // --- Patient Database History Fetching ---
+    async function loadHistory() {
+        try {
+            const res = await fetch('/history');
+            const data = await res.json();
+            const tbody = document.getElementById('historyTableBody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            
+            data.forEach(record => {
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+                tr.style.transition = 'background-color 0.2s';
+                tr.onmouseover = () => tr.style.backgroundColor = 'rgba(255,255,255,0.05)';
+                tr.onmouseout = () => tr.style.backgroundColor = 'transparent';
+                
+                const riskColor = record.risk_level === 'High' ? '#ef4444' : (record.risk_level === 'Moderate' ? '#f59e0b' : '#10b981');
+                const predColor = record.prediction === 'Abnormal' ? '#ef4444' : '#10b981';
+                
+                tr.innerHTML = `
+                    <td style="padding: 12px; font-size: 0.85rem; color: #94a3b8;">${record.date}</td>
+                    <td style="padding: 12px; font-weight: 600;">${record.name}</td>
+                    <td style="padding: 12px; font-size: 0.85rem; color: #94a3b8;"><i class="fa-solid fa-phone" style="font-size:0.75rem;"></i> ${record.contact || 'N/A'}</td>
+                    <td style="padding: 12px; font-size: 0.9rem; color: #cbd5e1;">${record.age} / ${record.gender}</td>
+                    <td style="padding: 12px; font-size: 0.85rem; color: #94a3b8;">${record.filename}</td>
+                    <td style="padding: 12px; font-weight: bold; color: ${predColor};">${record.prediction}</td>
+                    <td style="padding: 12px;">${record.confidence.toFixed(1)}%</td>
+                    <td style="padding: 12px;"><span style="background: ${riskColor}33; color: ${riskColor}; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; display: inline-block;">${record.risk_level}</span></td>
+                `;
+                
+                const deleteTd = document.createElement('td');
+                deleteTd.style.padding = '12px';
+                deleteTd.style.textAlign = 'center';
+                
+                const delBtn = document.createElement('button');
+                delBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+                delBtn.style.cssText = 'background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; transition: transform 0.2s;';
+                delBtn.title = 'Delete Patient Record';
+                delBtn.onmouseover = () => delBtn.style.transform = 'scale(1.2)';
+                delBtn.onmouseout = () => delBtn.style.transform = 'scale(1)';
+                delBtn.onclick = async () => {
+                    if(!confirm("Are you sure you want to permanently delete this patient record?")) return;
+                    try {
+                        const dr = await fetch(`/history/${record.id}`, { method: 'DELETE' });
+                        if(dr.ok) loadHistory();
+                    } catch(e) { alert("Failed to delete record: " + e.message); }
+                };
+                deleteTd.appendChild(delBtn);
+                tr.appendChild(deleteTd);
+                
+                tbody.appendChild(tr);
+            });
+        } catch(e) {
+            console.error("Could not load database history:", e);
+        }
+    }
+    
+    // Auto-load history on initialization
+    loadHistory();
+    
+    const refreshHistoryBtn = document.getElementById('refreshHistoryBtn');
+    if(refreshHistoryBtn) {
+        refreshHistoryBtn.addEventListener('click', loadHistory);
+    }
 
 });
