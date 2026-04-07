@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CardioAI | Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .landing-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .landing-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px 0 50px 0;
+            color: white;
+        }
+        .landing-header .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+        }
+        .landing-header .logo i {
+            color: #00d2ff;
+        }
+        .landing-header .logo span {
+            color: #00d2ff;
+            font-weight: 300;
+        }
+        
+        .hero {
+            padding: 40px 20px 60px 20px;
+        }
+        .badge {
+            display: inline-block;
+            background: rgba(0, 210, 255, 0.1);
+            color: #00d2ff;
+            padding: 8px 18px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 210, 255, 0.2);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: white;
+            line-height: 1.2;
+            margin: 0 0 20px 0;
+        }
+        .hero p {
+            font-size: 1.25rem;
+            color: #94a3b8;
+            max-width: 800px;
+            margin: 0 auto 50px auto;
+            line-height: 1.6;
+        }
+        .btn-start {
+            display: inline-block;
+            background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+            color: white;
+            text-decoration: none;
+            padding: 16px 40px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
+            transition: all 0.3s;
+        }
+        .btn-start:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 210, 255, 0.4);
+        }
+        .features {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .feature-card {
+            width: 320px;
+            padding: 35px 25px;
+            text-align: left;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 210, 255, 0.4);
+        }
+        .feature-icon {
+            font-size: 2.2rem;
+            color: #00d2ff;
+            margin-bottom: 25px;
+        }
+        .feature-card h3 {
+            margin: 0 0 12px 0;
+            font-size: 1.3rem;
+            color: white;
+            font-weight: 700;
+        }
+        .feature-card p {
+            margin: 0;
+            color: #94a3b8;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <div class="landing-container">
+        <div class="landing-header">
+            <h1 class="logo"><i class="fa-solid fa-heart-pulse"></i> Cardio<span>AI</span></h1>
+        </div>
+
+        <div class="hero">
+            <div class="badge">Advanced Cardiac Analysis</div>
+            <h1>Cardiovascular Disease<br>Classification</h1>
+            <p>Analyze phonocardiogram signals using machine learning to detect cardiovascular abnormalities and assess patient risk.</p>
+            <a href="/analysis" class="btn-start">Start Analysis <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i></a>
+        </div>
+
+        <div class="features">
+            <div class="glass-panel feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-bolt"></i></div>
+                <h3>Fast Analysis</h3>
+                <p>Get results in seconds with our advanced multi-domain signal processing engine.</p>
+            </div>
+            <div class="glass-panel feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-chart-column"></i></div>
+                <h3>Detailed Analysis</h3>
+                <p>Comprehensive feature extraction and cardiovascular risk assessment reports.</p>
+            </div>
+            <div class="glass-panel feature-card">
+                <div class="feature-icon"><i class="fa-regular fa-heart"></i></div>
+                <h3>Clinical Guidance</h3>
+                <p>Receive actionable medical recommendations based on live acoustic AI analysis.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

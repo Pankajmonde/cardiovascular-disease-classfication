@@ -120,10 +120,8 @@ def predict_audio(audio_path):
     prediction = loaded_model.predict(F_selected)[0]
     proba = loaded_model.predict_proba(F_selected)[0]
     
+    # No fake numbers. Output pure probabilities from the trained model!
     confidence = float(max(proba))
-    # Softmax temperature scaling to enforce UI thresholds (map base accuracy to 85-99% margin)
-    if confidence > 0.5:
-        confidence = min(0.995, confidence + (1.0 - confidence) * 0.75)
         
     result_class = "Abnormal" if prediction == 1 else "Normal"
     
