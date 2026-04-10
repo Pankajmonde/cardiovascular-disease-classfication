@@ -61,6 +61,9 @@ def predict():
             if os.path.exists(filepath):
                 os.remove(filepath)
                 
+            if 'error' in result:
+                return jsonify({'error': result['error']})
+                
             # Extract patient details
             name = request.form.get('patName', 'Unknown')
             name = name if name else 'Unknown'

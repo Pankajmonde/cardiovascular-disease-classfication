@@ -413,31 +413,44 @@ exportPdfBtn.addEventListener('click', async () => {
 
     const element = document.getElementById('printableReport');
 
-    // Step 1: Show element properly (VISIBLE in layout)
-    // Using left: -9999px instead of opacity: 0 because html2canvas captures opacity!
+    // Step 1: Off-screen isolation
     element.style.display = 'block';
-    element.style.position = 'absolute';
+    element.style.position = 'fixed';
     element.style.left = '-9999px';
     element.style.top = '0';
-    element.style.opacity = '1';
+    element.style.width = '750px';
+    element.style.height = 'auto'; // Naturally expand
     element.style.zIndex = '9999';
 
-    // Step 2: Wait for render + fonts
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Step 2: Wait for DOM repaint
+    await new Promise(resolve => setTimeout(resolve, 300));
     await document.fonts.ready;
 
-    // Step 3: Generate with html2canvas and jsPDF directly
-    html2canvas(element, { scale: 2, useCORS: true }).then(canvas => {
+    // Step 3: Generate
+    html2canvas(element, { 
+        scale: 2, 
+        useCORS: true
+    }).then(canvas => {
         const imgData = canvas.toDataURL("image/png");
         
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('p', 'mm', 'a4');
         
-        const imgWidth = 210; // A4 width
-        const pageHeight = 297; // A4 height
-        const imgHeight = canvas.height * imgWidth / canvas.width;
+        let finalWidth = 210; // Standard A4 mm width
+        let finalHeight = canvas.height * finalWidth / canvas.width;
         
-        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+        // MATHEMATICAL FIX: If the document is taller than the physical A4 page (297mm),
+        // we proportionally scale the entire image down so it perfectly fits on 1 sheet!
+        if (finalHeight > 297) {
+            const ratio = 290 / finalHeight; // 290mm guarantees safety margin at bottom
+            finalWidth = finalWidth * ratio;
+            finalHeight = 290;
+        }
+        
+        // Center the scaled image horizontally
+        const xOffset = (210 - finalWidth) / 2;
+        
+        pdf.addImage(imgData, 'PNG', xOffset, 3, finalWidth, finalHeight); // 3mm top padding
         pdf.save('CardioAI_Medical_Report.pdf');
         
         // Step 4: Reset
