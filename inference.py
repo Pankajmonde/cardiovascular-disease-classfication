@@ -103,6 +103,17 @@ def predict_audio(audio_path):
     load_models()
     y, sr = librosa.load(audio_path, sr=SAMPLE_RATE)
     
+    # --- OUT OF DISTRIBUTION (OOD) REJECTION FILTER ---
+    # Real heart sounds are very low frequency (< 400Hz).
+    # Speech, room noise, and clapping have high frequencies and zero-crossing rates.
+    ood_cent = np.mean(librosa.feature.spectral_centroid(y=y, sr=sr)[0])
+    ood_zcr = np.mean(librosa.feature.zero_crossing_rate(y)[0])
+    
+    if ood_cent > 800 or ood_zcr > 0.05:
+        return {
+            'error': f'Invalid Signal (OOD Filter Tripped). The AI detected human speech or excessive background noise (Freq: {ood_cent:.0f}Hz, ZCR: {ood_zcr:.3f}). Please record a valid biological heartbeat.'
+        }
+        
     cqt_spec = create_iir_cqt_spectrogram(y, sr)
     spec_processed = preprocess_spectrogram(cqt_spec)
     
